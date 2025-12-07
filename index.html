@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iron Attachments - IA-JB-60T Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --brand-red: #C63624;
+    --charcoal: #2F3133;
+    --off-white: #F5F5F5;
+    --light-gray: #C2C9CB;
+    --dark-input: #3f4245;
+    --genie-blue: #0093d0; 
+  }
+
+  body { 
+    font-family: 'Roboto', sans-serif; 
+    background-color: var(--charcoal); 
+    padding: 20px; 
+    color: var(--off-white);
+    margin: 0;
+  }
+
+  .container { max-width: 400px; margin: 0 auto; padding: 10px; }
+  
+  /* HEADER */
+  .brand-header {
+    text-align: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--brand-red);
+    padding-bottom: 20px;
+  }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 4em; margin: 0; line-height: 0.9; color: var(--brand-red); letter-spacing: 1px; }
+  .sub-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.8em; color: var(--off-white); letter-spacing: 3px; margin-top: -5px; }
+  .model-tag { font-family: 'Roboto', sans-serif; color: var(--light-gray); font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; font-weight: bold; }
+
+  /* MACHINE SELECTOR */
+  .machine-selector-label {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--light-gray);
+    font-size: 1.2em;
+    margin-bottom: 5px;
+  }
+  
+  .machine-select {
+    width: 100%;
+    padding: 15px;
+    background-color: #222;
+    color: white;
+    border: 2px solid #444;
+    border-radius: 4px;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  /* INPUTS */
+  label { display: block; margin-top: 20px; font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; color: var(--light-gray); letter-spacing: 1px; }
+  
+  select, input { 
+    width: 100%; padding: 15px; margin-top: 5px; 
+    background-color: var(--dark-input); 
+    border: 1px solid #555; border-left: 5px solid var(--brand-red); 
+    border-radius: 2px; font-size: 18px; color: white; box-sizing: border-box; 
+    font-family: 'Roboto', sans-serif; font-weight: 500;
+  }
+  
+  /* Special border for Genie Mode */
+  .genie-mode input, .genie-mode select { border-left-color: var(--genie-blue); }
+
+  select:focus, input:focus { outline: none; background-color: #4a4d50; border-color: var(--brand-red); }
+  
+  /* RESULT BOX */
+  .result-box { 
+    margin-top: 30px; 
+    background-color: var(--off-white); 
+    border-radius: 4px; 
+    padding: 0; 
+    text-align: center; 
+    color: var(--charcoal);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: all 0.3s;
+  }
+
+  .result-header {
+    background-color: var(--light-gray);
+    padding: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2em;
+    letter-spacing: 1px;
+    color: var(--charcoal);
+    border-bottom: 1px solid #999;
+  }
+
+  .result-value { font-family: 'Bebas Neue', sans-serif; font-size: 4.5em; color: var(--charcoal); margin: 10px 0 0 0; line-height: 1; }
+  .unit { font-size: 0.3em; vertical-align: middle; color: #666; }
+  .warning-text { font-size: 0.75em; color: #666; padding: 10px 20px 20px 20px; font-style: italic; line-height: 1.4;}
+
+  /* ERROR & GENIE STATES */
+  .result-box.error { background-color: #3f0000; border: 2px solid var(--brand-red); }
+  .result-box.error .result-header { background-color: var(--brand-red); color: white; }
+  .result-box.error .result-value { color: var(--brand-red); font-size: 2.5em; margin: 20px 0; }
+  .result-box.error .warning-text { color: #ffcccc; }
+
+  /* Logic Breakdown */
+  .logic-trace {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid #444;
+    text-align: left;
+    display: none; 
+  }
+  .logic-trace.visible { display: block; }
+  .trace-item { margin-bottom: 4px; }
+  .trace-label { font-weight: bold; color: #aaa; }
+
+</style>
+</head>
+<body>
+
+<div class="container" id="appContainer">
+  
+  <div class="brand-header">
+    <h1>IRON</h1>
+    <div class="sub-brand">ATTACHMENTS</div>
+    <div class="model-tag">Model: IA-JB-60T</div>
+  </div>
+
+  <div class="machine-selector-label">SELECT MACHINE</div>
+  <select id="machineSelect" class="machine-select" onchange="changeMachine()">
+    <option value="generic">GENERIC FORKLIFT (Calculate)</option>
+    <option value="gth5519">GENIE GTH-5519</option>
+  </select>
+
+  <div id="inputArea">
+    </div>
+  
+  <label for="hookPos">Jib Hook Position</label>
+  <select id="hookPos" onchange="calculate()">
+    <option value="0">POS 1 (4' 0" Reach)</option>
+    <option value="1">POS 2 (7' 0" Reach)</option>
+    <option value="2">POS 3 (9' 0" Reach)</option>
+    <option value="3">POS 4 (12' 0" Reach)</option>
+  </select>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-header" id="resultLabel">MAX SAFE LOAD</div>
+    <div class="result-value" id="output">---</div>
+    <div class="warning-text" id="warningText">
+      Select options to calculate.
+    </div>
+  </div>
+
+  <div id="logicTrace" class="logic-trace"></div>
+
+</div>
+
+<script>
+  // --- UPDATED DATA ---
+  const JIB_WEIGHT = 475; // NEW LIGHTER WEIGHT (LBS)
+
+  const jibStructuralLimits = {
+    // 0=Pos1, 1=Pos2, 2=Pos3, 3=Pos4
+    // Assumes similar structural strength to competitor for now
+    0: 6000, 
+    1: 4000, 
+    2: 3000, 
+    3: 2000 
+  };
+
+  // Interpolation Data (Generic Forklift)
+  const genericChart = {
+    keys: [2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000],
+    values: {
+      0: [557, 1057, 1557, 2057, 2557, 3557, 4557, 5557, 6000],
+      1: [319, 604, 890, 1176, 1461, 2033, 2604, 3176, 4000],
+      2: [207, 430, 652, 874, 1096, 1541, 1985, 2430, 3000],
+      3: [112, 279, 446, 612, 779, 1112, 1446, 1779, 2000]
+    }
+  };
+
+  // Fleet Libraries
+  const fleetData = {
+    "gth5519": {
+      name: "Genie GTH-5519",
+      color: "#0093d0",
+      zones: [
+        { id: "A", label: "ZONE A (5,500 lbs)", cap: 5500 },
+        { id: "B", label: "ZONE B (4,400 lbs)", cap: 4400 },
+        { id: "C", label: "ZONE C (3,000 lbs)", cap: 3000 },
+        { id: "D", label: "ZONE D (2,000 lbs)", cap: 2000 },
+        { id: "E", label: "ZONE E (1,900 lbs)", cap: 1900 }
+      ]
+    }
+  };
+
+  // --- STATE ---
+  let currentMachine = "generic";
+
+  // --- INIT ---
+  function changeMachine() {
+    currentMachine = document.getElementById("machineSelect").value;
+    const inputArea = document.getElementById("inputArea");
+    const container = document.getElementById("appContainer");
+    
+    // Clear previous Inputs
+    inputArea.innerHTML = "";
+    
+    if (currentMachine === "generic") {
+      // Render Standard Forklift Input
+      container.classList.remove("genie-mode");
+      inputArea.innerHTML = `
+        <label for="forkliftCap">Forklift Rated Capacity</label>
+        <input type="number" id="forkliftCap" placeholder="ENTER WEIGHT (LBS)" value="5000" oninput="calculate()">
+      `;
+    } else {
+      // Render Machine Specific Zone Selector
+      container.classList.add("genie-mode");
+      const machine = fleetData[currentMachine];
+      let options = "";
+      machine.zones.forEach(z => {
+        options += `<option value="${z.cap}">${z.label}</option>`;
+      });
+      
+      inputArea.innerHTML = `
+        <label style="color:${machine.color}">Current Chart Zone</label>
+        <select id="zoneCap" onchange="calculate()">${options}</select>
+      `;
+    }
+    
+    calculate();
+  }
+
+  function calculate() {
+    const hookIndex = parseInt(document.getElementById("hookPos").value);
+    const output = document.getElementById("output");
+    const label = document.getElementById("resultLabel");
+    const trace = document.getElementById("logicTrace");
+    
+    let safeLoad = 0;
+    let msg = "";
+
+    if (currentMachine === "generic") {
+      // --- GENERIC LOGIC (Interpolation) ---
+      const inputEl = document.getElementById("forkliftCap");
+      if(!inputEl) return;
+      const inputCap = parseFloat(inputEl.value);
+
+      if (isNaN(inputCap)) { output.innerText = "---"; return; }
+      if (inputCap < 2000 || inputCap > 15000) { setErrorState(true, "CAPACITY RANGE ERROR"); return; }
+      
+      setErrorState(false);
+      safeLoad = interpolateGeneric(inputCap, hookIndex);
+      msg = "*Estimate based on 24\" load center.";
+      trace.className = "logic-trace"; 
+
+    } else {
+      // --- FLEET LOGIC (Weakest Link) ---
+      const zoneEl = document.getElementById("zoneCap");
+      if(!zoneEl) return;
+      const machineCap = parseInt(zoneEl.value);
+      const jibLimit = jibStructuralLimits[hookIndex];
+      
+      // 1. Machine Capacity - New Lighter Attachment Weight
+      const machineNet = machineCap - JIB_WEIGHT;
+      
+      // 2. Find Weakest Link
+      safeLoad = Math.min(machineNet, jibLimit);
+      
+      setErrorState(false);
+      msg = `*Jib Weight (${JIB_WEIGHT} lbs) automatically deducted.`;
+      
+      // Show Logic Trace
+      trace.className = "logic-trace visible";
+      trace.innerHTML = `
+        <div class="trace-item"><span class="trace-label">Machine Zone Limit:</span> ${machineCap} lbs</div>
+        <div class="trace-item"><span class="trace-label">Less IA-JB-60T Weight:</span> -${JIB_WEIGHT} lbs</div>
+        <div class="trace-item"><span class="trace-label">Net Machine Cap:</span> ${machineNet} lbs</div>
+        <div class="trace-item"><span class="trace-label">Jib Structural Limit:</span> ${jibLimit} lbs</div>
+        <div class="trace-item" style="color:var(--brand-red); margin-top:5px;">LIMITING FACTOR: ${machineNet < jibLimit ? "MACHINE STABILITY" : "JIB STRUCTURE"}</div>
+      `;
+    }
+
+    output.innerHTML = safeLoad.toLocaleString() + '<span class="unit">LBS</span>';
+    document.getElementById("warningText").innerText = msg;
+  }
+
+  function interpolateGeneric(inputCap, hookIndex) {
+    let lowerKey = 2000, upperKey = 15000, lowerIndex = 0;
+    for (let i = 0; i < genericChart.keys.length - 1; i++) {
+      if (inputCap >= genericChart.keys[i] && inputCap <= genericChart.keys[i+1]) {
+        lowerKey = genericChart.keys[i];
+        upperKey = genericChart.keys[i+1];
+        lowerIndex = i;
+        break;
+      }
+    }
+    const val1 = genericChart.values[hookIndex][lowerIndex];
+    const val2 = genericChart.values[hookIndex][lowerIndex + 1];
+    const ratio = (inputCap - lowerKey) / (upperKey - lowerKey);
+    return Math.floor(val1 + (ratio * (val2 - val1)));
+  }
+
+  function setErrorState(isError, msg) {
+    const box = document.getElementById("resultBox");
+    const output = document.getElementById("output");
+    const label = document.getElementById("resultLabel");
+    
+    if (isError) {
+      box.classList.add("error");
+      label.innerText = "WARNING";
+      output.innerHTML = msg;
+      const unitSpan = output.querySelector(".unit");
+      if(unitSpan) unitSpan.remove();
+    } else {
+      box.classList.remove("error");
+      label.innerText = "MAX SAFE LOAD";
+    }
+  }
+
+  // Start
+  changeMachine();
+</script>
+
+</body>
+</html>
